@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temas 4, 5 y 6</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+        }
+        
+        /* Encabezado */
+        header {
+            padding: 25px 30px;
+            background-color: #007bff;
+            color: white;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        
+        /* Marcador (Scoreboard) - General */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .score-item {
+            text-align: center;
+        }
+        .score-item span {
+            display: block;
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        .score-item {
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        /* Colores para el marcador final */
+        #score-aciertos { color: #28a745; }
+        #score-errores { color: #dc3545; }
+        #score-quedan { color: #6c757d; }
+        /* Colores para el marcador en vivo */
+        #score-aciertos-live { color: #28a745; }
+        #score-errores-live { color: #dc3545; }
+        
+        /* Formulario del Test */
+        #quizForm {
+            padding: 30px;
+            /* Damos una altura mínima para que no "salte" la página */
+            min-height: 250px; 
+        }
+        .question-block {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        /* En el modo de una sola pregunta, no queremos bordes inferiores */
+        .single-question-mode .question-block {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .question-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .question-block p {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #222;
+        }
+        
+        /* Opciones de respuesta */
+        .question-block label {
+            display: block;
+            background-color: #fdfdfd;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .question-block label:hover {
+            background-color: #f0f8ff;
+            border-color: #007bff;
+            box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+        }
+        /* Deshabilitar clics en preguntas ya respondidas */
+        .question-block.answered label {
+            cursor: not-allowed;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        .question-block input[type="radio"] {
+            display: none; /* Ocultamos el radio button original */
+        }
+        /* Estilo para la opción seleccionada */
+        .question-block input[type="radio"]:checked + span {
+            font-weight: 600;
+            color: #0056b3;
+        }
+        
+        /* Estilos para respuestas post-calificación */
+        .question-block label.correct {
+            background-color: #d4edda !important;
+            border-color: #c3e6cb !important;
+            color: #155724;
+            font-weight: bold;
+        }
+        .question-block label.correct:hover {
+            background-color: #c3e6cb !important;
+        }
+        .question-block label.incorrect {
+            background-color: #f8d7da !important;
+            border-color: #f5c6cb !important;
+            color: #721c24;
+            font-weight: bold;
+        }
+        .question-block label.incorrect:hover {
+            background-color: #f5c6cb !important;
+        }
+        /* Estilo para la respuesta incorrecta seleccionada por el usuario */
+        .question-block label.user-incorrect {
+            text-decoration: line-through;
+            opacity: 0.8;
+        }
+        /* Estilos para anular el color del texto del span en respuestas */
+        .question-block label.correct span,
+        .question-block label.incorrect span {
+            font-weight: 700;
+            color: inherit; /* Hereda el color de la etiqueta (.correct o .incorrect) */
+        }
+
+        /* Navegación */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px 30px 30px;
+        }
+        .nav-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        #prevBtn {
+            background-color: #6c757d;
+            color: white;
+        }
+        #prevBtn:hover {
+            background-color: #5a6268;
+        }
+        #prevBtn:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        #nextBtn {
+            background-color: #007bff;
+            color: white;
+        }
+        #nextBtn:hover {
+            background-color: #0056b3;
+        }
+        #nextBtn.submit-style {
+            background-color: #28a745;
+        }
+        #nextBtn.submit-style:hover {
+            background-color: #218838;
+        }
+
+        /* Ocultar elementos */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Temas 4, 5 y 6</h1>
+        </header>
+
+        <!-- Marcador de Progreso (durante el test) -->
+        <div id="quiz-progress" class="scoreboard">
+            <div class="score-item">
+                Progreso
+                <span id="progress-text">1 / 45</span>
+            </div>
+            <div class="score-item">
+                Aciertos
+                <span id="score-aciertos-live">0</span>
+            </div>
+            <div class="score-item">
+                Errores
+                <span id="score-errores-live">0</span>
+            </div>
+        </div>
+
+        <!-- Marcador de Resultados (al final) -->
+        <div id="results-board" class="scoreboard hidden">
+            <div class="score-item">
+                Aciertos
+                <span id="score-aciertos">0</span>
+            </div>
+            <div class="score-item">
+                Errores
+                <span id="score-errores">0</span>
+            </div>
+            <div class="score-item">
+                Sin contestar
+                <span id="score-quedan">45</span>
+            </div>
+        </div>
+
+        <!-- Contenedor de la pregunta activa o de los resultados -->
+        <form id="quizForm" class="single-question-mode">
+            <!-- Las preguntas se cargarán aquí dinámicamente -->
+        </form>
+
+        <!-- Botones de Navegación -->
+        <div class="navigation" id="nav-buttons">
+            <button id="prevBtn" class="nav-button">Anterior</button>
+            <button id="nextBtn" class="nav-button">Siguiente</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS DEL TEST ---
+        // Extraído del PDF "4, 5, 6.pdf"
+        const quizData = [
+            {
+                question: "1) ¿Qué función corresponde al Servicio Andaluz de Salud en Atención Primaria?",
+                options: { a: "Realizar diagnóstico continuado de salud de la población", b: "Gestionar la educación sanitaria en colegios", c: "Administrar medicamentos hospitalarios", d: "Gestionar recursos financieros solamente" },
+                answer: "a"
+            },
+            {
+                question: "2) ¿Cuál es una característica de los hospitales de Alta Resolución?",
+                options: { a: "Fomentan la hospitalización prolongada", b: "Potencian la consulta de acto único", c: "Son privados y no dependen del SAS", d: "No tienen autonomía de gestión" },
+                answer: "b"
+            },
+            {
+                question: "3) ¿Qué ente estaba adscrito a la Viceconsejería y tenía personalidad jurídica diferenciada hasta 2021?",
+                options: { a: "Fundación Pública Andaluza para la Integración del Enfermo Mental", b: "Escuela Andaluza de Salud Pública", c: "Agencias Públicas Empresariales Sanitarias (APES)", d: "Agencia Andaluza de Salud Pública" },
+                answer: "d"
+            },
+            {
+                question: "4) ¿Qué función no corresponde al Servicio Andaluz de Salud?",
+                options: { a: "Administración de instituciones sanitarias", b: "Gestión de prestaciones sanitarias", c: "Gestión de recursos humanos", d: "Emisión de sentencias judiciales en temas sanitarios" },
+                answer: "d"
+            },
+            {
+                question: "5) ¿Cuál es el órgano encargado de garantizar los derechos del sistema sanitario público en Andalucía?",
+                options: { a: "Viceconsejería", b: "Secretaría General Técnica", c: "Consejería de Salud", d: "Agencia de Servicios Sociales" },
+                answer: "c"
+            },
+            {
+                question: "6) ¿Cuál es la población aproximada a atender en una Zona Básica de Salud?",
+                options: { a: "Entre 1.000 y 5.000 habitantes", b: "Entre 5.000 y 25.000 habitantes", c: "Entre 25.000 y 50.000 habitantes", d: "Más de 50.000 habitantes" },
+                answer: "b"
+            },
+            {
+                question: "7) ¿Qué artículo de la Constitución Española establece el marco legal para el derecho a la salud?",
+                options: { a: "Artículo 43", b: "Artículo 35", c: "Artículo 55", d: "Artículo 100" },
+                answer: "a"
+            },
+            {
+                question: "8) ¿Qué ley estatal es clave para el sistema sanitario público?",
+                options: { a: "Ley de Protección Social", b: "Ley de Seguridad Social", c: "Ley General de Sanidad", d: "Ley de Autonomía" },
+                answer: "c"
+            },
+            {
+                question: "9) ¿Qué objetivo del SAS está relacionado con la equidad?",
+                options: { a: "Expandir servicios fuera de Andalucía", b: "Mejorar la tecnología médica solamente", c: "Prestar servicios a toda la población superando diferencias económicas, sociales y geográficas", d: "Promover la medicina privada" },
+                answer: "c"
+            },
+            {
+                question: "10) ¿En qué año se creó el SAS?",
+                options: { a: "1981", b: "1993", c: "2007", d: "1986" },
+                answer: "d"
+            },
+            {
+                question: "11) ¿Qué instrumento planifica la política de salud en Andalucía principalmente?",
+                options: { a: "Plan de Calidad del SAS", b: "IV Plan Andaluz de Salud", c: "Decreto 156/2022", d: "Ley 2/1998 de Salud" },
+                answer: "b"
+            },
+            {
+                question: "12) ¿Qué norma aprueba la estructura orgánica básica de la Consejería de Salud y Consumo?",
+                options: { a: "Ley 2/1998", b: "Ley 8/1986", c: "Decreto 193/2021", d: "Decreto 156/2022" },
+                answer: "d"
+            },
+            {
+                question: "13) ¿Cuál es uno de los derechos de los pacientes en Andalucía?",
+                options: { a: "Libre elección de médico y centro sanitario", b: "Acceso a medicamentos gratuitos", c: "Derecho a hospitalización inmediata", d: "Acceso a educación sanitaria" },
+                answer: "a"
+            },
+            {
+                question: "14) ¿Qué criterio no se utiliza para la zonificación de ZBS?",
+                options: { a: "Criterios históricos", b: "Criterios demográficos", c: "Criterios de edad de la población", d: "Criterios geográficos" },
+                answer: "c" // La edad es parte de la demografía, pero no un criterio de zonificación en sí.
+            },
+            {
+                question: "15) ¿Cuántas Áreas de Gestión Sanitaria existen actualmente en Andalucía?",
+                options: { a: "12", b: "16", c: "20", d: "10" },
+                answer: "b" // El PDF marca 16
+            },
+            {
+                question: "16) Según PINEAULT, la planificación sanitaria consiste fundamentalmente en:",
+                options: { a: "Proceso continuo de previsión de recursos y servicios para lograr objetivos según prioridades", b: "Proceso discontinuo basado en improvisación", c: "Descripción teórica sin aplicación práctica", d: "Acciones puntuales a corto plazo" },
+                answer: "a"
+            },
+            {
+                question: "17) ¿Cuál de los criterios se usa para jerarquizar prioridades?",
+                options: { a: "Nivel educativo de usuarios", b: "Capacidad tecnológica del hospital", c: "Relación coste-efecto del problema", d: "Orden cronológico de aparición" },
+                answer: "c"
+            },
+            {
+                question: "18) Condiciones que deben cumplir los objetivos de un plan:",
+                options: { a: "Ser amplios y generales", b: "Redactados de forma ambigua", c: "Incluir todos los problemas sin jerarquía", d: "Ser concretos, escritos y mensurables" },
+                answer: "d"
+            },
+            {
+                question: "19) Fases del proceso administrativo que corresponden al \"pensar\":",
+                options: { a: "Dirección y control", b: "Organización y ejecución", c: "Planificación y control", d: "Planificación y organización" },
+                answer: "d"
+            },
+            {
+                question: "20) La planificación sanitaria busca principalmente:",
+                options: { a: "Relacionar necesidades, demanda y recursos de forma equilibrada", b: "Reducir gasto mediante centralización", c: "Aumentar oferta sin valorar utilidad", d: "Sustituir decisiones políticas por técnicas" },
+                answer: "a"
+            },
+            {
+                question: "21) Causa del surgimiento del enfoque científico en la administración:",
+                options: { a: "Aparición de sindicatos obreros", b: "Necesidad de aumentar la producción agrícola", c: "Desaparición de empresas familiares", d: "Complejidad de tareas durante la Revolución Industrial" },
+                answer: "d"
+            },
+            {
+                question: "22) La planificación se caracteriza por ser:",
+                options: { a: "Proceso lógico, creativo y orientado a la acción", b: "Conjunto de normas fijas", c: "Acción puntual sin relación", d: "Proceso orientado exclusivamente al control" },
+                answer: "a"
+            },
+            {
+                question: "23) El método Delphi se caracteriza por:",
+                options: { a: "Reunir presencialmente a expertos", b: "Ser técnica cuantitativa", c: "Basarse en encuestas a población general", d: "Buscar consenso mediante comunicaciones sucesivas por correo" },
+                answer: "d"
+            },
+            {
+                question: "24) Diferencia entre método Delphi y Técnica de Grupo Nominal (TGN):",
+                options: { a: "Delphi mide datos numéricos y TGN opiniones", b: "TGN excluye expertos", c: "Delphi se usa solo para control", d: "Delphi usa correo y TGN reuniones presenciales" },
+                answer: "d"
+            },
+            {
+                question: "25) Finalidad que no pertenece a la planificación:",
+                options: { a: "Determinar medidas en tiempo y recursos", b: "Establecer recursos necesarios", c: "Definir la situación ideal", d: "Distribuir tareas entre grupos de trabajo" },
+                answer: "d" // Distribuir tareas es de la fase de Organización/Dirección
+            },
+            {
+                question: "26) El esquema de Gantt se utiliza para:",
+                options: { a: "Representar gráficamente la secuencia y el tiempo de actividades", b: "Determinar prioridades estratégicas", c: "Evaluar satisfacción del usuario", d: "Medir relación coste-beneficio" },
+                answer: "a"
+            },
+            {
+                question: "27) Condición indispensable para que la administración sea científica:",
+                options: { a: "Depender del liderazgo del director", b: "Realizarse de forma secuencial y ordenada", c: "Usar métodos estadísticos de control", d: "Basarse solo en experiencia empírica" },
+                answer: "b"
+            },
+            {
+                question: "28) Ejemplo de necesidad comparativa según Bradshaw:",
+                options: { a: "Definición de normas por expertos", b: "Grupo que reclama más recursos basándose en otra comunidad similar", c: "Región con mortalidad infantil superior a la media", d: "Paciente que solicita atención por dolor" },
+                answer: "b"
+            },
+            {
+                question: "29) Actividad administrativa dentro de un programa de salud:",
+                options: { a: "Vacunación infantil", b: "Registro y coordinación entre centros", c: "Atención domiciliaria", d: "Educación sanitaria grupal" },
+                answer: "b"
+            },
+            {
+                question: "30) En planificación sanitaria, una \"necesidad de salud\" representa:",
+                options: { a: "Cantidad de recursos asignados", b: "Deseo subjetivo del paciente", c: "Demanda explícita de atención", d: "Diferencia entre estado de salud óptimo y real" },
+                answer: "d"
+            },
+            {
+                question: "31) Definición correcta de \"organización\" como fase del proceso administrativo:",
+                options: { a: "Normas y valores compartidos", b: "Representación gráfica de relaciones jerárquicas", c: "Forma de situar y coordinar elementos para ejecutar el plan eficazmente", d: "Proceso de selección y contratación" },
+                answer: "c"
+            },
+            {
+                question: "32) Una estructura informal se caracteriza por:",
+                options: { a: "Líneas de comunicación poco definidas y cambiantes", b: "Integrada solo por personal directivo", c: "Define objetivos y actividades", d: "Se basa en autoridad rígida" },
+                answer: "a"
+            },
+            {
+                question: "33) El status dentro de una organización se relaciona con:",
+                options: { a: "Número de subordinados", b: "Creencias y valores", c: "Tiempo en la institución", d: "Grado de autonomía, autoridad y salario" },
+                answer: "d"
+            },
+            {
+                question: "34) Función de la cultura organizacional:",
+                options: { a: "Regular sanciones y recompensas", b: "Establecer forma de actuar e identidad común", c: "Sustituir procedimientos escritos", d: "Determinar estructura jerárquica" },
+                answer: "b"
+            },
+            {
+                question: "35) La experimentación y revisión de un protocolo tiene como finalidad:",
+                options: { a: "Evaluar su pertinencia y actualizarlo periódicamente", b: "Reducir el número de procedimientos", c: "Comprobar solo su costo financiero", d: "Garantizar cumplimiento sin modificaciones" },
+                answer: "a"
+            },
+            {
+                question: "36) En la clasificación por factores de dependencia, cada paciente se evalúa según:",
+                options: { a: "Su grado de autonomía o necesidad de ayuda", b: "Tiempo que permanece hospitalizado", c: "Edad y antecedentes médicos", d: "Especialidad médica que lo atiende" },
+                answer: "a"
+            },
+            {
+                question: "37) Característica esencial de la estructura jerárquica:",
+                options: { a: "Descentralización y flexibilidad", b: "Autoridad en línea de mando rígida y escalonada", c: "Ausencia de relación entre autoridad y responsabilidad", d: "Comunicación multidireccional" },
+                answer: "b"
+            },
+            {
+                question: "38) En la fase de sistematización, las normas se elaboran para:",
+                options: { a: "Fomentar improvisación", b: "Eliminar protocolos existentes", c: "Sustituir políticas institucionales", d: "Unificar actuaciones y establecer niveles de calidad" },
+                answer: "d"
+            },
+            {
+                question: "39) Una de las ventajas del organigrama:",
+                options: { a: "Eliminar necesidad de normas", b: "Reducir supervisión", c: "Sustituir comunicación verbal", d: "Facilitar comprensión de la posición de cada empleado" },
+                answer: "d"
+            },
+            {
+                question: "40) La departamentalización por área funcional agrupa al personal según:",
+                options: { a: "Horario o turno", b: "Número de trabajadores", c: "Fines, habilidades y conocimientos para un trabajo común", d: "Ubicación geográfica" },
+                answer: "c"
+            },
+            {
+                question: "41) Los requisitos del puesto incluyen:",
+                options: { a: "Experiencia profesional y características personales deseables", b: "Descripción de funciones diarias", c: "Procedimientos de admisión de pacientes", d: "Políticas generales de la institución" },
+                answer: "a"
+            },
+            {
+                question: "42) La descripción del puesto tiene como finalidad principal:",
+                options: { a: "Sustituir evaluación del desempeño", b: "Uniformar tareas de todo el personal", c: "Determinar responsabilidades, relaciones y condiciones laborales", d: "Establecer jerarquía salarial" },
+                answer: "c"
+            },
+            {
+                question: "43) En la organización, la autoridad implica:",
+                options: { a: "Influir sin responsabilidad", b: "Ejercer poder sin relación jerárquica", c: "Delegar tareas sin supervisión", d: "Ordenar actividades manteniendo la responsabilidad final" },
+                answer: "d"
+            },
+            {
+                question: "44) El método de clasificación de pacientes por tiempo se caracteriza por:",
+                options: { a: "Considerar solo el nivel de dependencia", b: "Determinar titulación profesional necesaria", c: "Basarse en complejidad de la patología", d: "Asignar un tiempo estándar según los cuidados precisos" },
+                answer: "d"
+            },
+            {
+                question: "45) El protocolo debe incluir entre otros elementos:",
+                options: { a: "Información general sin pasos concretos", b: "Opiniones personales del profesional", c: "Solo resultados esperados", d: "Descripción exacta de la actividad y secuencia de ejecución" },
+                answer: "d"
+            }
+        ];
+
+
+        // --- ESTADO DEL TEST ---
+        const totalQuestions = quizData.length;
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(totalQuestions).fill(null);
+        let scoreAciertos = 0;
+        let scoreErrores = 0;
+
+        // --- REFERENCIAS AL DOM ---
+        const quizForm = document.getElementById('quizForm');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const navButtons = document.getElementById('nav-buttons');
+        
+        // Marcadores
+        const quizProgress = document.getElementById('quiz-progress');
+        const progressText = document.getElementById('progress-text');
+        const scoreAciertosLiveEl = document.getElementById('score-aciertos-live');
+        const scoreErroresLiveEl = document.getElementById('score-errores-live');
+        
+        const resultsBoard = document.getElementById('results-board');
+        const scoreAciertosEl = document.getElementById('score-aciertos');
+        const scoreErroresEl = document.getElementById('score-errores');
+        const scoreQuedanEl = document.getElementById('score-quedan');
+
+        // --- LÓGICA DEL TEST ---
+
+        /**
+         * Muestra la pregunta actual en el DOM.
+         * @param {number} index - El índice de la pregunta a mostrar.
+         */
+        function showQuestion(index) {
+            // Actualizar el índice
+            currentQuestionIndex = index;
+            const currentQuestion = quizData[index];
+            
+            let questionText = currentQuestion.question;
+            const userAnswer = userAnswers[index];
+            const correctAnswer = currentQuestion.answer;
+
+            // Generar HTML para las opciones
+            let optionsHtml = [];
+            for (const [key, value] of Object.entries(currentQuestion.options)) {
+                // 'disabled' para forzar el clic en la etiqueta
+                optionsHtml.push(
+                    `<label>
+                        <input type="radio" name="q_current" value="${key}" disabled>
+                        <span>${key}. ${value}</span>
+                    </label>`
+                );
+            }
+
+            // Actualizar el HTML del formulario
+            quizForm.innerHTML = `
+                <div class="question-block">
+                    <p>${questionText}</p>
+                    ${optionsHtml.join('')}
+                </div>
+            `;
+            
+            const questionBlock = quizForm.querySelector('.question-block');
+            const labels = quizForm.querySelectorAll('label');
+
+            if (userAnswer !== null) {
+                // La pregunta ya ha sido respondida (al usar "Anterior")
+                // Simplemente mostramos el estado guardado
+                questionBlock.classList.add('answered'); // Deshabilita clics vía CSS
+                const userLabel = quizForm.querySelector(`label > input[value="${userAnswer}"]`).parentElement;
+                userLabel.querySelector('input').checked = true; // Marcar el radio
+
+                if (userAnswer === correctAnswer) {
+                    userLabel.classList.add('correct');
+                } else {
+                    userLabel.classList.add('incorrect');
+                    const correctLabel = quizForm.querySelector(`label > input[value="${correctAnswer}"]`).parentElement;
+                    correctLabel.classList.add('correct');
+                }
+            } else {
+                // Pregunta nueva, añadir listeners
+                labels.forEach(label => {
+                    label.addEventListener('click', handleAnswerClick);
+                });
+            }
+            
+            // Actualizar el estado de los botones
+            prevBtn.disabled = (index === 0);
+            
+            if (index === totalQuestions - 1) {
+                nextBtn.textContent = 'Ver Resultados';
+                nextBtn.classList.add('submit-style');
+            } else {
+                nextBtn.textContent = 'Siguiente';
+                nextBtn.classList.remove('submit-style');
+            }
+            
+            // Actualizar contadores
+            updateScoreboard();
+        }
+
+        /**
+         * Maneja el clic en una respuesta, la evalúa y actualiza la UI.
+         */
+        function handleAnswerClick(event) {
+            const clickedLabel = event.currentTarget;
+            const questionBlock = clickedLabel.closest('.question-block');
+
+            // Prevenir dobles clics
+            if (questionBlock.classList.contains('answered')) return;
+            
+            // Bloquear más clics en esta pregunta
+            questionBlock.classList.add('answered');
+
+            const selectedInput = clickedLabel.querySelector('input');
+            selectedInput.checked = true; // Marcar el radio button
+            
+            const userAnswer = selectedInput.value;
+            const correctAnswer = quizData[currentQuestionIndex].answer;
+
+            // Guardar respuesta
+            userAnswers[currentQuestionIndex] = userAnswer;
+
+            // Evaluar y aplicar estilos
+            if (userAnswer === correctAnswer) {
+                clickedLabel.classList.add('correct');
+                scoreAciertos++;
+            } else {
+                clickedLabel.classList.add('incorrect');
+                scoreErrores++;
+                // Mostrar la respuesta correcta
+                const correctLabel = quizForm.querySelector(`label > input[value="${correctAnswer}"]`).parentElement;
+                correctLabel.classList.add('correct');
+            }
+            
+            // Actualizar el marcador superior
+            updateScoreboard();
+        }
+        
+        /**
+         * Actualiza los contadores de progreso, aciertos y errores.
+         */
+        function updateScoreboard() {
+            progressText.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+            scoreAciertosLiveEl.textContent = scoreAciertos;
+            scoreErroresLiveEl.textContent = scoreErrores;
+        }
+
+        /**
+         * Mueve a la siguiente pregunta o califica el test.
+         */
+        function handleNext() {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                // Ir a la siguiente pregunta
+                showQuestion(currentQuestionIndex + 1);
+            } else {
+                // Es la última pregunta, calificar
+                gradeQuiz();
+            }
+        }
+
+        /**
+         * Mueve a la pregunta anterior.
+         */
+        function handlePrev() {
+            if (currentQuestionIndex > 0) {
+                showQuestion(currentQuestionIndex - 1);
+            }
+        }
+
+        /**
+         * Califica el test y muestra los resultados.
+         */
+        function gradeQuiz() {
+            let aciertos_final = 0;
+            let errores_final = 0;
+            let sinContestar = 0;
+
+            let resultsHtml = [];
+
+            // Calcular puntuaciones y generar HTML de resultados
+            quizData.forEach((question, index) => {
+                const correctAnswer = question.answer;
+                const userAnswer = userAnswers[index];
+                
+                let questionText = question.question;
+
+                let optionsHtml = [];
+                
+                for (const [key, value] of Object.entries(question.options)) {
+                    let labelClass = '';
+                    
+                    if (key === correctAnswer) {
+                        labelClass = 'correct';
+                    }
+                    
+                    if (userAnswer === key && userAnswer !== correctAnswer) {
+                        labelClass = 'incorrect user-incorrect';
+                    } else if (userAnswer === key && userAnswer === correctAnswer) {
+                        // 'correct' ya está asignada
+                    }
+
+                    optionsHtml.push(
+                        `<label class="${labelClass}">
+                            <!-- Los inputs están deshabilitados en los resultados -->
+                            <input type="radio" name="q_${index}" value="${key}" ${userAnswer === key ? 'checked' : ''} disabled>
+                            <span>${key}. ${value}</span>
+                        </label>`
+                    );
+                }
+                
+                resultsHtml.push(
+                    `<div class="question-block">
+                        <p>${questionText}</p>
+                        ${optionsHtml.join('')}
+                    </div>`
+                );
+
+                // Contar puntos
+                if (userAnswer === null) {
+                    sinContestar++;
+                } else if (userAnswer === correctAnswer) {
+                    aciertos_final++;
+                } else {
+                    errores_final++;
+                }
+            });
+
+            // --- Actualizar la UI para mostrar resultados ---
+
+            // 1. Ocultar progreso y navegación
+            quizProgress.classList.add('hidden');
+            navButtons.classList.add('hidden');
+            
+            // 2. Mostrar marcador de resultados
+            resultsBoard.classList.remove('hidden');
+            scoreAciertosEl.textContent = aciertos_final;
+            scoreErroresEl.textContent = errores_final;
+            scoreQuedanEl.textContent = sinContestar;
+            
+            // 3. Quitar el modo "single-question" y mostrar todos los resultados
+            quizForm.classList.remove('single-question-mode');
+            quizForm.innerHTML = resultsHtml.join('');
+            
+            // 4. Subir al inicio de la página
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Actualizar contadores al total correcto
+            progressText.textContent = `1 / ${totalQuestions}`;
+            scoreQuedanEl.textContent = totalQuestions;
+
+            // Añadir Listeners a los botones
+            nextBtn.addEventListener('click', handleNext);
+            prevBtn.addEventListener('click', handlePrev);
+
+            // Mostrar la primera pregunta
+            showQuestion(0);
+        });
+
+    </script>
+
+</body>
+</html>
